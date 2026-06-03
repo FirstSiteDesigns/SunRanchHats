@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sun Ranch Hats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Libre+Baskerville:ital,wght@0,400;1,400&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:#F2E8D9;overflow-x:hidden;cursor:none;font-family:'Libre Baskerville',serif}
+
+  /* cursor */
+  #cursor{width:10px;height:10px;border-radius:50%;background:#A94E2B;position:fixed;z-index:99999;pointer-events:none;transform:translate(-50%,-50%);transition:width .25s,height .25s,opacity .2s;mix-blend-mode:multiply}
+  body:hover #cursor{opacity:1}
+
+  ::-webkit-scrollbar{width:3px}
+  ::-webkit-scrollbar-thumb{background:#D4956A}
+
+  /* noise */
+  .noise{position:relative}
+  .noise::after{content:'';position:absolute;inset:0;z-index:5;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  /* animations */
+  @keyframes drift{from{transform:scale(1.08) translateX(-1%)}to{transform:scale(1.02) translateX(1%)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes stampIn{0%{opacity:0;transform:scale(1.35) rotate(-3deg);filter:blur(8px)}60%{filter:blur(0)}100%{opacity:1;transform:scale(1) rotate(0)}}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  .a1{opacity:0;animation:fadeUp .7s .3s ease forwards}
+  .a2{opacity:0;animation:stampIn 1s .6s ease forwards}
+  .a3{opacity:0;animation:fadeUp .7s 1.1s ease forwards}
+  .a4{opacity:0;animation:fadeUp .7s 1.4s ease forwards}
+  .a5{opacity:0;animation:fadeUp .7s 1.7s ease forwards}
+
+  /* ── NAV ── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;transition:background .5s,backdrop-filter .5s}
+  nav.scrolled{background:rgba(61,31,15,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(212,149,106,.25)}
+  .nav-logo{position:absolute;left:50%;transform:translateX(-50%);text-align:center;cursor:pointer}
+  .nav-logo-main{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.32em;color:#E8CEAA;line-height:1;transition:font-size .4s;white-space:nowrap}
+  nav.scrolled .nav-logo-main{font-size:20px}
+  .nav-logo-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;letter-spacing:.15em;color:#D4956A;margin-top:2px;transition:font-size .4s}
+  nav.scrolled .nav-logo-sub{font-size:10px}
+  .nav-links{display:flex;gap:32px}
+  .nav-links a,.nav-right a{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.18em;color:#E8CEAA;text-decoration:none;opacity:.8;cursor:pointer}
+  .nav-right{display:flex;gap:28px;align-items:center}
+  .nav-bag{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.1em;color:#D4956A;cursor:pointer}
+
+  /* ── TICKER ── */
+  .ticker{overflow:hidden;padding:11px 0;position:relative;z-index:2}
+  .ticker-inner{display:flex;animation:ticker 22s linear infinite;white-space:nowrap}
+  .ticker-inner span{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.25em;margin-right:28px}
+
+  /* ── HERO ── */
+  #hero{position:relative;height:100vh;min-height:700px;overflow:hidden;background:#1A0F08}
+  .hero-bg{position:absolute;inset:0;background-image:url('Hat_1.png');background-size:cover;background-position:center 20%;animation:drift 18s ease-in-out alternate infinite;filter:sepia(8%) saturate(100%) brightness(0.95)}
+  .hero-grad{position:absolute;inset:0;background:linear-gradient(170deg,rgba(26,15,8,0.05) 0%,rgba(61,31,15,0.3) 55%,rgba(26,15,8,0.7) 100%)}
+  .hero-ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-10deg);font-family:'Bebas Neue',sans-serif;font-size:clamp(100px,20vw,260px);color:rgba(212,149,106,.055);letter-spacing:.1em;white-space:nowrap;pointer-events:none;user-select:none;line-height:1}
+  .hero-content{position:absolute;inset:0;display:flex;align-items:flex-end;padding:0 48px 80px}
+  .hero-text{max-width:680px}
+  .hero-tag{display:inline-block;border:2px solid #D4956A;font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.35em;color:#D4956A;padding:5px 14px;margin-bottom:24px}
+  .hero-h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(56px,9.5vw,118px);color:#F2E8D9;line-height:.88;letter-spacing:-.02em;margin:0 0 26px}
+  .hero-h1 em{font-style:italic;color:#D4956A}
+  .hero-sub{font-family:'Libre Baskerville',serif;font-style:italic;font-size:clamp(15px,2vw,19px);color:#E8CEAA;max-width:400px;line-height:1.75;margin-bottom:40px}
+  .hero-btns{display:flex;gap:14px;flex-wrap:wrap}
+  .btn-primary{font-family:'Bebas Neue',sans-serif;letter-spacing:.22em;font-size:16px;padding:16px 52px;background:#A94E2B;color:#F2E8D9;border:none;cursor:pointer}
+  .btn-outline{font-family:'Bebas Neue',sans-serif;letter-spacing:.22em;font-size:16px;padding:16px 52px;background:transparent;color:#E8CEAA;border:1px solid rgba(232,206,170,.45);cursor:pointer}
+  .hero-badge{margin-left:auto;margin-bottom:20px}
+  .badge-ring{width:108px;height:108px;border-radius:50%;border:1px solid rgba(212,149,106,.5);display:flex;align-items:center;justify-content:center;position:relative;animation:spin 22s linear infinite}
+  .badge-center{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.2em;color:#E8CEAA;text-align:center;line-height:1.5;animation:spin 22s linear infinite reverse}
+  .hero-scroll{position:absolute;right:36px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:10px}
+  .hero-scroll-text{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:.3em;color:#D4956A;writing-mode:vertical-rl}
+  .hero-scroll-line{width:1px;height:56px;background:linear-gradient(to bottom,#D4956A,transparent);animation:pulse 2s infinite}
+
+  /* ── COLLECTIONS ── */
+  #collections{background:#F5EDE0;padding:100px 40px;position:relative;overflow:hidden}
+  .coll-ghost{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);font-family:'Bebas Neue',sans-serif;font-size:clamp(70px,13vw,160px);color:rgba(169,78,43,.07);letter-spacing:.12em;text-align:center;pointer-events:none;user-select:none}
+  .coll-inner{max-width:1280px;margin:0 auto;position:relative;z-index:1}
+  .coll-header{display:flex;align-items:baseline;gap:20px;margin-bottom:64px}
+  .coll-header h2{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:clamp(40px,6vw,78px);color:#3D1F0F;margin:0;line-height:1}
+  .coll-line{flex:1;height:1px;background:rgba(169,78,43,.3)}
+  .coll-count{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.25em;color:#A94E2B}
+  .coll-grid{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:20px;align-items:end}
+  .coll-card{cursor:pointer;position:relative;transition:transform .55s cubic-bezier(.34,1.56,.64,1)}
+  .coll-card:nth-child(1){transform:rotate(-1.5deg) translateY(40px)}
+  .coll-card:nth-child(2){transform:rotate(0deg) translateY(0)}
+  .coll-card:nth-child(3){transform:rotate(1.5deg) translateY(20px)}
+  .coll-card:hover{transform:rotate(0deg) translateY(-10px) !important}
+  .coll-photo{position:relative;overflow:hidden;aspect-ratio:3/4}
+  .coll-photo img{width:100%;height:100%;object-fit:cover;object-position:center top;transition:transform .7s ease;filter:sepia(6%) saturate(100%)}
+  .coll-card:hover .coll-photo img{transform:scale(1.06)}
+  .coll-overlay{position:absolute;inset:0;background:rgba(61,31,15,.12);transition:background .4s}
+  .coll-card:hover .coll-overlay{background:rgba(61,31,15,.42)}
+  .coll-num{position:absolute;top:14px;right:16px;font-family:'Bebas Neue',sans-serif;font-size:60px;color:rgba(212,149,106,.28);line-height:1;transition:color .4s}
+  .coll-card:hover .coll-num{color:#D4956A}
+  .coll-label{background:#2E1A0E;padding:18px 20px 22px}
+  .coll-label-count{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.3em;color:#D4956A;margin-bottom:5px}
+  .coll-label h3{font-family:'Playfair Display',serif;font-weight:700;font-size:26px;color:#E8CEAA;margin:0 0 3px}
+  .coll-label p{font-family:'Libre Baskerville',serif;font-style:italic;font-size:13px;color:rgba(232,206,170,.6);margin:0}
+
+  /* ── PRODUCTS ── */
+  #products{background:#FAF5EE;padding:100px 40px}
+  .prod-inner{max-width:1280px;margin:0 auto}
+  .prod-heading{position:relative;margin-bottom:64px;overflow:hidden}
+  .prod-heading-big{font-family:'Bebas Neue',sans-serif;font-size:clamp(58px,11vw,130px);color:#E8CEAA;line-height:.85;letter-spacing:-.01em}
+  .prod-heading-big span{color:#A94E2B}
+  .prod-heading-sub{position:absolute;right:0;bottom:8px;font-family:'Libre Baskerville',serif;font-style:italic;font-size:16px;color:#D4956A}
+  .prod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px}
+  .prod-card{cursor:pointer}
+  .prod-img-wrap{position:relative;overflow:hidden;background:#E8CEAA;padding-top:130%}
+  .prod-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;transition:transform .7s ease;filter:sepia(4%) saturate(100%)}
+  .prod-card:hover .prod-img{transform:scale(1.06)}
+  .prod-img-overlay{position:absolute;inset:0;background:transparent;transition:background .4s}
+  .prod-card:hover .prod-img-overlay{background:rgba(61,31,15,.18)}
+  .prod-tag{position:absolute;top:14px;left:14px;font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.25em;color:#F2E8D9;padding:4px 10px}
+  .prod-quick{position:absolute;bottom:0;left:0;right:0;background:#3D1F0F;color:#F2E8D9;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.25em;text-align:center;padding:14px;transform:translateY(100%);transition:transform .4s ease}
+  .prod-card:hover .prod-quick{transform:translateY(0)}
+  .prod-info{padding:16px 4px}
+  .prod-style{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.25em;color:#D4956A;margin-bottom:5px}
+  .prod-name-row{display:flex;justify-content:space-between;align-items:baseline}
+  .prod-name{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#3D1F0F;margin:0}
+  .prod-price{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#A94E2B;letter-spacing:.05em}
+  .prod-sizes{display:flex;gap:6px;margin-top:10px}
+  .prod-sizes span{width:30px;height:30px;border:1px solid rgba(212,149,106,.6);font-family:'Libre Baskerville',serif;font-size:11px;color:#D4956A;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .prod-cta{margin-top:56px;text-align:center}
+  .btn-outline-dark{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.25em;padding:16px 64px;background:transparent;color:#3D1F0F;border:2px solid #3D1F0F;cursor:pointer}
+
+  /* ── STORY ── */
+  #story{background:#B96040}
+  .story-grid{display:grid;grid-template-columns:55% 45%;min-height:700px}
+  .story-photos{position:relative;min-height:600px}
+  .story-main{position:absolute;top:0;left:0;right:10%;bottom:15%;overflow:hidden}
+  .story-main img{width:100%;height:100%;object-fit:cover;object-position:center;filter:sepia(6%) saturate(100%)}
+  .story-inset{position:absolute;bottom:0;right:0;width:52%;height:52%;overflow:hidden;border:6px solid #B96040}
+  .story-inset img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:sepia(6%) saturate(100%)}
+  .story-stamp{position:absolute;top:26px;left:26px;border:2px solid rgba(250,245,238,.7);font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.3em;color:rgba(250,245,238,.85);padding:5px 13px}
+  .story-text{padding:80px 56px 80px 36px;display:flex;flex-direction:column;justify-content:center}
+  .story-eyebrow{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.3em;color:rgba(250,245,238,.8);margin-bottom:18px}
+  .story-h2{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(34px,5vw,60px);color:#FAF5EE;margin:0 0 26px;line-height:.95;letter-spacing:-.02em}
+  .story-h2 em{font-style:italic;color:#D4956A}
+  .story-p{font-family:'Libre Baskerville',serif;font-size:15px;color:rgba(250,245,238,.85);line-height:1.85;margin:0 0 18px}
+  .story-p-italic{font-family:'Libre Baskerville',serif;font-style:italic;font-size:14px;color:rgba(250,245,238,.65);line-height:1.8;margin:0 0 38px}
+  .story-stats{display:flex;gap:32px;margin-bottom:38px;border-top:1px solid rgba(250,245,238,.2);padding-top:30px}
+  .story-stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:#FAF5EE;line-height:1}
+  .story-stat-label{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:.2em;color:rgba(250,245,238,.6);margin-top:4px}
+  .btn-adobe{align-self:flex-start;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.25em;padding:14px 40px;background:#D4956A;color:#1A0F08;border:none;cursor:pointer}
+
+  /* ── LOOKBOOK ── */
+  #lookbook{background:#FAF5EE;padding:100px 40px}
+  .look-inner{max-width:1280px;margin:0 auto}
+  .look-header{display:flex;align-items:flex-end;gap:20px;margin-bottom:56px}
+  .look-h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(60px,10vw,114px);color:#3D1F0F;line-height:.85;letter-spacing:-.01em}
+  .look-h2 span{color:#A94E2B}
+  .look-tagline{padding-bottom:12px;font-family:'Libre Baskerville',serif;font-style:italic;font-size:16px;color:#D4956A;line-height:1.6;max-width:200px}
+  .look-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .look-item{position:relative;overflow:hidden;cursor:pointer}
+  .look-item img{width:100%;height:100%;object-fit:cover;object-position:center top;transition:transform .7s ease;filter:sepia(4%) saturate(100%);display:block}
+  .look-item:hover img{transform:scale(1.07)}
+  .look-hover{position:absolute;inset:0;background:transparent;transition:background .4s;display:flex;align-items:center;justify-content:center}
+  .look-item:hover .look-hover{background:rgba(61,31,15,.48)}
+  .look-hover span{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.28em;color:#F2E8D9;opacity:0;transition:opacity .4s}
+  .look-item:hover .look-hover span{opacity:1}
+
+  /* ── TESTIMONIALS ── */
+  #testimonials{background:#A94E2B;padding:100px 40px;position:relative;overflow:hidden;text-align:center}
+  .testi-ghost{position:absolute;bottom:-20px;left:0;right:0;font-family:'Bebas Neue',sans-serif;font-size:clamp(80px,15vw,190px);color:rgba(0,0,0,.1);letter-spacing:.05em;pointer-events:none;line-height:1}
+  .testi-inner{max-width:800px;margin:0 auto;position:relative;z-index:1}
+  .testi-eyebrow{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.35em;color:rgba(242,232,217,.7);margin-bottom:20px}
+  .testi-stars{font-size:22px;color:#C97D2E;letter-spacing:6px;margin-bottom:32px}
+  .testi-quote{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(22px,3.5vw,38px);color:#F2E8D9;font-weight:400;line-height:1.35;margin:0 0 36px}
+  .testi-name{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.25em;color:#E8CEAA}
+  .testi-dots{display:flex;gap:8px;justify-content:center;margin-top:36px}
+  .testi-dot{height:2px;border:none;cursor:pointer;padding:0;transition:all .4s;background:rgba(242,232,217,.35)}
+  .testi-dot.active{width:40px;background:#F2E8D9}
+
+  /* ── EMAIL ── */
+  #email{background:#1A0F08;padding:120px 40px;text-align:center;position:relative;overflow:hidden}
+  .email-inner{position:relative;z-index:1;max-width:640px;margin:0 auto}
+  .email-eyebrow{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.35em;color:#D4956A;margin-bottom:18px}
+  .email-h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(50px,10vw,108px);color:#E8CEAA;line-height:.9;letter-spacing:.02em;margin-bottom:22px}
+  .email-sub{font-family:'Libre Baskerville',serif;font-style:italic;font-size:17px;color:#D4956A;margin-bottom:48px;line-height:1.6}
+  .email-form{display:flex;max-width:480px;margin:0 auto}
+  .email-input{flex:1;padding:18px 20px;background:rgba(232,206,170,.08);border:none;border-bottom:1px solid rgba(212,149,106,.5);color:#E8CEAA;font-family:'Libre Baskerville',serif;font-size:15px;outline:none}
+  .email-input::placeholder{color:rgba(232,206,170,.4)}
+  .email-btn{padding:18px 32px;background:#A94E2B;color:#F2E8D9;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.25em}
+  .email-success{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:#D4956A}
+
+  /* ── FOOTER ── */
+  footer{background:#2A1509;padding:64px 40px 32px}
+  .foot-inner{max-width:1280px;margin:0 auto}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:52px}
+  .foot-brand-name{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:.14em;color:#E8CEAA;line-height:.9}
+  .foot-brand-loc{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:#D4956A;letter-spacing:.1em;margin-top:6px;margin-bottom:18px}
+  .foot-brand-p{font-family:'Libre Baskerville',serif;font-size:14px;color:rgba(232,206,170,.6);line-height:1.7;max-width:260px}
+  .foot-col h4{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.3em;color:#D4956A;margin-bottom:18px}
+  .foot-col a{display:block;font-family:'Libre Baskerville',serif;font-size:14px;color:rgba(232,206,170,.65);margin-bottom:10px;text-decoration:none;cursor:pointer}
+  .foot-bottom{border-top:1px solid rgba(212,149,106,.15);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+  .foot-copy{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.15em;color:rgba(232,206,170,.35)}
+  .foot-socials{display:flex;gap:24px}
+  .foot-socials a{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.2em;color:rgba(232,206,170,.45);text-decoration:none;cursor:pointer}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:768px){
+    nav{padding:14px 20px;background:rgba(61,31,15,.95) !important;backdrop-filter:blur(14px);justify-content:center}
+    .nav-links,.nav-right{display:none}
+    .nav-logo{position:relative;left:auto;transform:none}
+    .hero-content{padding:0 24px 60px}
+    .hero-badge{display:none}
+    .coll-grid{grid-template-columns:1fr}
+    .coll-card:nth-child(1),.coll-card:nth-child(2),.coll-card:nth-child(3){transform:none;margin-top:0}
+    .story-grid{grid-template-columns:1fr}
+    .story-photos{height:60vw;min-height:320px}
+    .look-grid{grid-template-columns:repeat(2,1fr)}
+    .foot-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-links">
+    <a>Shop</a>
+    <a>Collections</a>
+  </div>
+  <div class="nav-logo">
+    <div class="nav-logo-main">SUN RANCH</div>
+    <div class="nav-logo-sub">Hats</div>
+  </div>
+  <div class="nav-right">
+    <a>Story</a>
+    <a>Journal</a>
+    <div class="nav-bag">BAG (0)</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="noise">
+  <div class="hero-bg"></div>
+  <div class="hero-grad"></div>
+  <div class="hero-ghost">SUN RANCH</div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-tag a1">Byron Bay, Australia — Est. 2019</div>
+      <h1 class="hero-h1 a2">Cowgirl<br><em>Energy.</em><br>Coastal Soul.</h1>
+      <p class="hero-sub a3">Handcrafted hats born between dusty roads and endless coastlines.</p>
+      <div class="hero-btns a4">
+        <button class="btn-primary">Shop Now</button>
+        <button class="btn-outline">Our Story</button>
+      </div>
+    </div>
+    <div class="hero-badge a5">
+      <div class="badge-ring" id="badge-ring">
+        <div class="badge-center">NEW<br>ARRIVALS</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- TICKER 1 -->
+<div class="ticker" style="background:#A94E2B">
+  <div class="ticker-inner" id="t1"></div>
+</div>
+
+<!-- COLLECTIONS -->
+<section id="collections">
+  <div class="coll-ghost">COLLECTIONS</div>
+  <div class="coll-inner">
+    <div class="coll-header">
+      <h2>The Collections</h2>
+      <div class="coll-line"></div>
+      <div class="coll-count">30 STYLES</div>
+    </div>
+    <div class="coll-grid">
+      <div class="coll-card">
+        <div class="coll-photo">
+          <img src="Hat_7.png" alt="The Ranch Collection"/>
+          <div class="coll-overlay"></div>
+          <div class="coll-num">01</div>
+        </div>
+        <div class="coll-label">
+          <div class="coll-label-count">12 HATS</div>
+          <h3>The Ranch</h3>
+          <p>Western silhouettes</p>
+        </div>
+      </div>
+      <div class="coll-card">
+        <div class="coll-photo">
+          <img src="Hat_6.png" alt="The Beach Collection"/>
+          <div class="coll-overlay"></div>
+          <div class="coll-num">02</div>
+        </div>
+        <div class="coll-label">
+          <div class="coll-label-count">10 HATS</div>
+          <h3>The Beach</h3>
+          <p>Salt + straw</p>
+        </div>
+      </div>
+      <div class="coll-card">
+        <div class="coll-photo">
+          <img src="Hat_9.png" alt="Festival Collection"/>
+          <div class="coll-overlay"></div>
+          <div class="coll-num">03</div>
+        </div>
+        <div class="coll-label">
+          <div class="coll-label-count">8 HATS</div>
+          <h3>Festival</h3>
+          <p>Wild hearts only</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEST SELLERS -->
+<section id="products">
+  <div class="prod-inner">
+    <div class="prod-heading">
+      <div class="prod-heading-big">Best<br><span>Sellers</span></div>
+      <div class="prod-heading-sub">— worn and loved</div>
+    </div>
+    <div class="prod-grid">
+      <!-- Card 1 -->
+      <div class="prod-card">
+        <div class="prod-img-wrap">
+          <img class="prod-img" src="Hat_1.png" onerror="this.src='Hat_2.png'" alt="The Desert Queen"/>
+          <div class="prod-img-overlay"></div>
+          <div class="prod-tag" style="background:#7A8C6E">BESTSELLER</div>
+          <div class="prod-quick">Add to Bag</div>
+        </div>
+        <div class="prod-info">
+          <div class="prod-style">Black felt / wide brim</div>
+          <div class="prod-name-row">
+            <h3 class="prod-name">The Desert Queen</h3>
+            <span class="prod-price">$249</span>
+          </div>
+          <div class="prod-sizes"><span>S</span><span>M</span><span>L</span><span>XL</span></div>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="prod-card">
+        <div class="prod-img-wrap">
+          <img class="prod-img" src="Hat_2.png" onerror="this.src='Hat_3.png'" alt="The Saltwater"/>
+          <div class="prod-img-overlay"></div>
+          <div class="prod-tag" style="background:#7A8C6E">BESTSELLER</div>
+          <div class="prod-quick">Add to Bag</div>
+        </div>
+        <div class="prod-info">
+          <div class="prod-style">Open raffia weave / natural</div>
+          <div class="prod-name-row">
+            <h3 class="prod-name">The Saltwater</h3>
+            <span class="prod-price">$179</span>
+          </div>
+          <div class="prod-sizes"><span>S</span><span>M</span><span>L</span><span>XL</span></div>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="prod-card">
+        <div class="prod-img-wrap">
+          <img class="prod-img" src="Hat_3.png" onerror="this.src='Hat_9.png'" alt="The Ranch Hand"/>
+          <div class="prod-img-overlay"></div>
+          <div class="prod-tag" style="background:#A94E2B">NEW</div>
+          <div class="prod-quick">Add to Bag</div>
+        </div>
+        <div class="prod-info">
+          <div class="prod-style">Black felt / structured</div>
+          <div class="prod-name-row">
+            <h3 class="prod-name">The Ranch Hand</h3>
+            <span class="prod-price">$219</span>
+          </div>
+          <div class="prod-sizes"><span>S</span><span>M</span><span>L</span><span>XL</span></div>
+        </div>
+      </div>
+      <!-- Card 4 -->
+      <div class="prod-card">
+        <div class="prod-img-wrap">
+          <img class="prod-img" src="Hat_5.png" onerror="this.src='Hat_1.png'" alt="The Dune Rider"/>
+          <div class="prod-img-overlay"></div>
+          <div class="prod-tag" style="background:#1A0F08">LIMITED</div>
+          <div class="prod-quick">Add to Bag</div>
+        </div>
+        <div class="prod-info">
+          <div class="prod-style">Black felt / sun-worn</div>
+          <div class="prod-name-row">
+            <h3 class="prod-name">The Dune Rider</h3>
+            <span class="prod-price">$189</span>
+          </div>
+          <div class="prod-sizes"><span>S</span><span>M</span><span>L</span><span>XL</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="prod-cta">
+      <button class="btn-outline-dark">View All Hats</button>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER 2 -->
+<div class="ticker" style="background:#1A0F08">
+  <div class="ticker-inner" id="t2"></div>
+</div>
+
+<!-- BRAND STORY -->
+<section id="story">
+  <div class="story-grid">
+    <div class="story-photos">
+      <div class="story-main"><img src="Hat_5.png" alt="Brand story"/></div>
+      <div class="story-inset"><img src="Hat_8.png" alt="Brand story detail"/></div>
+      <div class="story-stamp">EST. 2019</div>
+    </div>
+    <div class="story-text">
+      <div class="story-eyebrow">OUR STORY</div>
+      <h2 class="story-h2">Born Between<br><em>Dusty Roads</em><br>& Endless<br>Coastlines</h2>
+      <p class="story-p">Sun Ranch Hats creates pieces designed for women who belong everywhere and nowhere. Each hat carries the weight of a thousand golden hours.</p>
+      <p class="story-p-italic">This is not fast fashion. This is wearable ritual.</p>
+      <div class="story-stats">
+        <div><div class="story-stat-num">4,200+</div><div class="story-stat-label">HATS CRAFTED</div></div>
+        <div><div class="story-stat-num">22</div><div class="story-stat-label">COUNTRIES</div></div>
+        <div><div class="story-stat-num">100%</div><div class="story-stat-label">HANDMADE</div></div>
+      </div>
+      <button class="btn-adobe">Read Our Story</button>
+    </div>
+  </div>
+</section>
+
+<!-- LOOKBOOK -->
+<section id="lookbook">
+  <div class="look-inner">
+    <div class="look-header">
+      <h2 class="look-h2">Life In<br><span>Golden</span><br>Hour</h2>
+      <p class="look-tagline">Tag @sunranchhats<br>to be featured</p>
+    </div>
+    <div class="look-grid">
+      <div class="look-item" style="height:400px;margin-top:0"><img src="Hat_1.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:300px;margin-top:60px"><img src="Hat_2.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:460px;margin-top:0"><img src="Hat_3.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:320px;margin-top:80px"><img src="Hat_4.png" onerror="this.src='Hat_5.png'" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:380px;margin-top:20px"><img src="Hat_5.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:340px;margin-top:100px"><img src="Hat_6.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:350px;margin-top:30px"><img src="Hat_7.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+      <div class="look-item" style="height:310px;margin-top:70px"><img src="Hat_8.png" alt=""/><div class="look-hover"><span>SHOP THE LOOK</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="testi-ghost">REVIEWS</div>
+  <div class="testi-inner">
+    <div class="testi-eyebrow">CUSTOMER LOVE</div>
+    <div class="testi-stars" id="testi-stars">★★★★★</div>
+    <blockquote class="testi-quote" id="testi-quote">"I wore mine every single day of Byron festival. Got stopped constantly. Nothing compares."</blockquote>
+    <div class="testi-name" id="testi-name">MIA K. — BYRON BAY</div>
+    <div class="testi-dots" id="testi-dots"></div>
+  </div>
+</section>
+
+<!-- EMAIL -->
+<section id="email" class="noise">
+  <div class="email-inner">
+    <div class="email-eyebrow">JOIN THE CLUB</div>
+    <h2 class="email-h2">THE GOLDEN<br>HOUR CLUB</h2>
+    <p class="email-sub">10% off your first order. Early access. New arrivals. Stories from the road.</p>
+    <div class="email-form" id="email-form">
+      <input class="email-input" type="email" id="email-input" placeholder="your@email.com"/>
+      <button class="email-btn" onclick="joinClub()">Join</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand-name">SUN RANCH<br>HATS</div>
+        <div class="foot-brand-loc">Byron Bay, Australia</div>
+        <p class="foot-brand-p">Crafted for women who live between the ocean and the open road.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Shop</h4>
+        <a>New Arrivals</a><a>Beach Collection</a><a>Festival</a><a>Western</a><a>Sale</a>
+      </div>
+      <div class="foot-col">
+        <h4>About</h4>
+        <a>Our Story</a><a>Sustainability</a><a>Stockists</a><a>Journal</a><a>Press</a>
+      </div>
+      <div class="foot-col">
+        <h4>Help</h4>
+        <a>Sizing Guide</a><a>Shipping</a><a>Returns</a><a>Contact</a><a>FAQ</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div class="foot-copy">© 2024 Sun Ranch Hats. All rights reserved.</div>
+      <div class="foot-socials"><a>Instagram</a><a>Pinterest</a><a>TikTok</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top  = e.clientY + 'px';
+  });
+  document.querySelectorAll('a,button,[class*="card"],[class*="item"]').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.width='44px'; cursor.style.height='44px'; cursor.style.opacity='.35'; });
+    el.addEventListener('mouseleave', () => { cursor.style.width='10px'; cursor.style.height='10px'; cursor.style.opacity='1'; });
+  });
+
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Tickers
+  const tickerItems = ['Sun Ranch Hats','★','Byron Bay, Australia','★','Handcrafted','★','Since 2019','★','Free Shipping over $200','★','Coastal Cowgirl','★'];
+  function buildTicker(id, color) {
+    const el = document.getElementById(id);
+    const doubled = [...tickerItems, ...tickerItems];
+    el.innerHTML = doubled.map(t => `<span style="color:${color}">${t}</span>`).join('');
+  }
+  buildTicker('t1', '#F2E8D9');
+  buildTicker('t2', '#D4956A');
+
+  // Badge ring letters
+  const ring = document.getElementById('badge-ring');
+  const text = 'SUN RANCH HATS ★ HANDCRAFTED ★ ';
+  [...text].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.textContent = ch;
+    span.style.cssText = `position:absolute;font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:.08em;color:#D4956A;transform:rotate(${i*11.25}deg) translateY(-48px);transform-origin:50% 50%`;
+    ring.appendChild(span);
+  });
+
+  // Testimonials
+  const testis = [
+    { q: "I wore mine every single day of Byron festival. Got stopped constantly. Nothing compares.", name: "MIA K. — BYRON BAY" },
+    { q: "The quality is unreal. Beach meets western — exactly what I had been searching for.", name: "TASH R. — NOOSA" },
+    { q: "Worth every cent. Looks even better in person. Already on my second one.", name: "JADE W. — MARGARET RIVER" },
+  ];
+  let ti = 0;
+  const qEl = document.getElementById('testi-quote');
+  const nEl = document.getElementById('testi-name');
+  const dotsEl = document.getElementById('testi-dots');
+
+  function buildDots() {
+    dotsEl.innerHTML = '';
+    testis.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'testi-dot' + (i === ti ? ' active' : '');
+      b.style.width = i === ti ? '40px' : '10px';
+      b.onclick = () => { ti = i; updateTesti(); };
+      dotsEl.appendChild(b);
+    });
+  }
+  function updateTesti() {
+    qEl.textContent = `"${testis[ti].q}"`;
+    nEl.textContent = testis[ti].name;
+    buildDots();
+  }
+  buildDots();
+  setInterval(() => { ti = (ti + 1) % testis.length; updateTesti(); }, 4500);
+
+  // Email
+  function joinClub() {
+    const val = document.getElementById('email-input').value;
+    if (val) {
+      document.getElementById('email-form').outerHTML = '<div class="email-success">Welcome to the ranch.</div>';
+    }
+  }
+</script>
+</body>
+</html>
